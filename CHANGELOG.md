@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.0 - Portfolio professionalization
+
+- Added GitHub Actions CI with Ruff, PyTest and coverage.
+- Added stronger validation, transformation and manifest tests.
+- Polished README badges, examples and ETL evaluation notes.
+
 ## v0.2.0 - SQLAlchemy ETL pipeline
 
 - Added SQLAlchemy models for synthetic devices and event records.

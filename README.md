@@ -1,80 +1,102 @@
 # Data ETL Automation Lab
 
-Independent public portfolio project for **Python**, **ETL automation**, **PostgreSQL**, **SQLAlchemy** and **Docker**.
+[![CI](https://github.com/guilherme-lacerda-tech/data-etl-automation-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/guilherme-lacerda-tech/data-etl-automation-lab/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+[![Release](https://img.shields.io/github/v/release/guilherme-lacerda-tech/data-etl-automation-lab)](https://github.com/guilherme-lacerda-tech/data-etl-automation-lab/releases)
+[![License](https://img.shields.io/github/license/guilherme-lacerda-tech/data-etl-automation-lab)](LICENSE)
 
-This repository was created from scratch with fictional devices and synthetic event data. It does not contain corporate code, real data, private endpoints, credentials, logs or proprietary rules.
+Synthetic ETL pipeline that validates CSV and JSON inputs, deduplicates records, loads SQLAlchemy models and writes auditable reports.
 
-## Problem
+## Why / Problem
 
-Operational datasets often need validation, deduplication, transformation, relational loading and auditable summaries.
+Data workflows need clear validation, repeatable transformations and a way to explain what happened in each batch. This lab demonstrates that pattern with synthetic operational records.
 
-## What It Demonstrates
+## Features
 
-- CSV event ingestion.
-- JSON lookup data.
-- Validation for unknown devices, invalid statuses and invalid metrics.
+- CSV event ingestion and JSON device lookup.
+- Validation for unknown devices, invalid status, invalid metrics and missing IDs.
 - Deduplication by `event_id`.
-- Transformation into a normalized event table with a synthetic health score.
+- Transformation with synthetic `health_score`.
 - SQLAlchemy persistence.
-- PostgreSQL runtime with Docker Compose.
-- Summary, invalid-record output and manifest generation.
+- PostgreSQL runtime through Docker Compose.
+- Summary, invalid-record report and manifest.
+- CI with Ruff, PyTest and coverage.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    A["CSV + JSON"] --> B["Validate"]
-    B --> C["Deduplicate"]
-    C --> D["Transform"]
-    D --> E["SQLAlchemy"]
-    E --> F["PostgreSQL"]
-    E --> G["Summary / manifest"]
+    CSV["CSV events"] --> Validate["Validate"]
+    JSON["JSON devices"] --> Validate
+    Validate --> Deduplicate["Deduplicate"]
+    Deduplicate --> Transform["Transform"]
+    Transform --> DB["SQLAlchemy load"]
+    DB --> Postgres["PostgreSQL"]
+    DB --> Reports["Summary / manifest"]
 ```
 
-See [docs/architecture.md](docs/architecture.md) and [docs/adr/0002-postgresql-sqlalchemy-etl.md](docs/adr/0002-postgresql-sqlalchemy-etl.md).
+## Tech Stack
 
-## Stack
+Current: `Python` `CSV` `JSON` `SQLAlchemy` `PostgreSQL` `Docker Compose` `PyTest` `Ruff`
 
-`Python` `CSV` `JSON` `SQLAlchemy` `PostgreSQL` `Docker Compose` `PyTest`
+Planned: richer batch manifests, aggregate reports and migration tooling if schema changes become frequent.
 
-## Run With Docker
+## Quick Start
+
+```powershell
+python -m pip install -e ".[dev]"
+python examples/run_demo.py
+```
+
+Without `DATABASE_URL`, the local demo uses SQLite under `data/generated/`. Docker Compose uses PostgreSQL.
+
+## Docker
 
 ```powershell
 copy .env.example .env
 docker compose up --build
 ```
 
-Generated files are written to `data/generated/`.
+Docker runtime validation requires a local Docker CLI. In this workspace the Docker CLI was unavailable, so the Compose configuration was reviewed and the Python test/demo validation was executed separately.
 
-## Run Locally
-
-```powershell
-python -m pip install -e .
-python examples/run_demo.py
-```
-
-Without `DATABASE_URL`, the local demo writes to SQLite under `data/generated/`. Docker Compose uses PostgreSQL.
-
-## Run Tests
+## Tests
 
 ```powershell
-python -m pip install -e ".[dev]"
-pytest
+python -m pytest --cov --cov-report=term-missing
+python -m ruff check .
 ```
 
-## Technical Decisions
+## Example Output
 
-- PostgreSQL is used because ETL output is relational and queryable.
-- SQLAlchemy keeps the load step explicit and portable for tests.
-- Docker Compose is used because the pipeline has an application container and a database service.
-- SQLite remains useful for fast feedback and does not replace the PostgreSQL runtime.
+```json
+{
+  "records_received": 7,
+  "valid_records": 4,
+  "invalid_records": 2,
+  "duplicated_records": 1,
+  "processed_records": 4
+}
+```
+
+## Project Structure
+
+- `src/data_etl_automation_lab/pipeline.py`: validation, deduplication, transformation and load.
+- `src/data_etl_automation_lab/models.py`: SQLAlchemy models.
+- `data/sample`: synthetic source data.
+- `tests`: validation, transformation, manifest and load tests.
+
+## Engineering Decisions
+
+- PostgreSQL is used because loaded ETL state is relational and queryable.
+- SQLite remains useful for fast local tests.
+- Invalid rows are reported separately so the batch result is inspectable.
+
+See [docs/adr/0002-postgresql-sqlalchemy-etl.md](docs/adr/0002-postgresql-sqlalchemy-etl.md).
 
 ## Roadmap
 
-- Add richer batch manifests after the PyTest study phase.
-- Add migration tooling when schema evolution becomes frequent.
-- Add optional aggregate reports by group and status.
+See [ROADMAP.md](ROADMAP.md).
 
-## Security and Independence
+## Security
 
-See [SECURITY.md](SECURITY.md) and [DISCLAIMER.md](DISCLAIMER.md).
+All datasets are synthetic. No real logs, customer identifiers, internal paths, private endpoints or credentials are included.
