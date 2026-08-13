@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-etl}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-etl}
+      POSTGRES_DB: ${POSTGRES_DB:-etl_lab}
+    ports:
+      - "5433:5432"
+    volumes:
+      - etl-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-etl} -d ${POSTGRES_DB:-etl_lab}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  etl:
+    build: .
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://etl:etl@db:5432/etl_lab}
+    volumes:
+      - ./data/generated:/app/data/generated
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  etl-postgres-data:

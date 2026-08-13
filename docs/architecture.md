@@ -1,30 +1,29 @@
-    # Architecture
+# Architecture
 
-    ## Design Goal
+## Design Goal
 
-    Demonstrate a safe ETL workflow using only synthetic operational data.
+Demonstrate a reproducible ETL pipeline using only synthetic CSV and JSON inputs.
 
-    ## Current Boundaries
+## Pipeline
 
-    - Standard library first.
-    - Synthetic input only.
-    - Generated output ignored by Git.
-    - No real systems, endpoints or credentials.
+```mermaid
+flowchart LR
+    CSV["CSV events"] --> Validate["Validation"]
+    JSON["JSON devices"] --> Validate
+    Validate --> Deduplicate["Deduplication"]
+    Deduplicate --> Transform["Normalization and health score"]
+    Transform --> DB["SQLAlchemy load"]
+    DB --> Postgres["PostgreSQL"]
+    DB --> Summary["Summary and manifest"]
+```
 
-    ## Decisions
+## Metrics
 
-    - Separate ingestion, validation and output.
-- Use manifests for auditability.
-- Keep all sample data synthetic.
+The pipeline reports received, valid, invalid, duplicate and processed record counts. Invalid rows are written separately so the batch result is auditable.
 
-    ## Future Layers
+## Boundaries
 
-    ```mermaid
-    flowchart TB
-        A["Mock inputs"] --> B["Collector / Loader"]
-        B --> C["Domain validation"]
-        C --> D["Rules / Processing"]
-        D --> E["Persistence"]
-        E --> F["API / Reporting"]
-        F --> G["Automation workflows"]
-    ```
+- All records are synthetic.
+- PostgreSQL is the intended runtime database.
+- SQLite is used only for tests and quick local execution.
+- Output files are generated under ignored folders.
