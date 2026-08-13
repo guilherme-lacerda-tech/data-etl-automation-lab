@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.1 - Portfolio health and security automation
+
+- Added Dependabot version updates, CodeQL and dependency review automation.
+- Added a concise contribution guide.
+- Hardened CI with minimal permissions and timeout.
+
 ## v0.3.0 - Portfolio professionalization
 
 - Added GitHub Actions CI with Ruff, PyTest and coverage.

@@ -1,6 +1,6 @@
 [project]
 name = "data-etl-automation-lab"
-version = "0.3.0"
+version = "0.3.1"
 description = "Synthetic ETL automation lab with CSV, JSON, PostgreSQL, SQLAlchemy, reports and manifests."
 requires-python = ">=3.11"
 dependencies = [
