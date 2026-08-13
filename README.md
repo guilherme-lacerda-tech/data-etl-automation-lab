@@ -1,77 +1,80 @@
-    # Data ETL Automation Lab
+# Data ETL Automation Lab
 
-    Independent public portfolio project for **Python**, **automation**,
-    **systems integration** and **solutions engineering**.
+Independent public portfolio project for **Python**, **ETL automation**, **PostgreSQL**, **SQLAlchemy** and **Docker**.
 
-    This repository was created from scratch with a fictional domain and
-    synthetic data. It does not contain corporate code, real data, private
-    endpoints, credentials, logs or proprietary rules.
+This repository was created from scratch with fictional devices and synthetic event data. It does not contain corporate code, real data, private endpoints, credentials, logs or proprietary rules.
 
-    ## Problem
+## Problem
 
-    Operational datasets often need validation, transformation, aggregation and reproducible reports.
+Operational datasets often need validation, deduplication, transformation, relational loading and auditable summaries.
 
-    ## Objective
+## What It Demonstrates
 
-    Demonstrate a safe ETL workflow using only synthetic operational data.
-
-    ## Current Features
-
-    - CSV ingestion.
+- CSV event ingestion.
 - JSON lookup data.
-- SQLite output.
-- Summary and manifest files.
+- Validation for unknown devices, invalid statuses and invalid metrics.
+- Deduplication by `event_id`.
+- Transformation into a normalized event table with a synthetic health score.
+- SQLAlchemy persistence.
+- PostgreSQL runtime with Docker Compose.
+- Summary, invalid-record output and manifest generation.
 
-    ## Architecture
+## Architecture
 
-    ```mermaid
-    flowchart LR
-        A["Synthetic input"] --> B["Python processing"]
-        B --> C["Rules / validation"]
-        C --> D["Generated local output"]
-        D --> E["Future API / dashboard"]
-    ```
+```mermaid
+flowchart LR
+    A["CSV + JSON"] --> B["Validate"]
+    B --> C["Deduplicate"]
+    C --> D["Transform"]
+    D --> E["SQLAlchemy"]
+    E --> F["PostgreSQL"]
+    E --> G["Summary / manifest"]
+```
 
-    See [docs/architecture.md](docs/architecture.md) for details.
+See [docs/architecture.md](docs/architecture.md) and [docs/adr/0002-postgresql-sqlalchemy-etl.md](docs/adr/0002-postgresql-sqlalchemy-etl.md).
 
-    ## Stack
+## Stack
 
-    Current:
+`Python` `CSV` `JSON` `SQLAlchemy` `PostgreSQL` `Docker Compose` `PyTest`
 
-    `Python` `CSV` `JSON` `SQLite` `Reports`
+## Run With Docker
 
-    Planned evolution:
+```powershell
+copy .env.example .env
+docker compose up --build
+```
 
-    - PostgreSQL
-- SQLAlchemy
-- PyTest
-- Docker
-- GitHub Actions
+Generated files are written to `data/generated/`.
 
-    ## Run Locally
+## Run Locally
 
-    ```powershell
-    python examples/run_demo.py
-    ```
+```powershell
+python -m pip install -e .
+python examples/run_demo.py
+```
 
-    The demo uses only files under `data/sample/` and writes generated output
-    to ignored local folders.
+Without `DATABASE_URL`, the local demo writes to SQLite under `data/generated/`. Docker Compose uses PostgreSQL.
 
-    ## Repository Workflow
+## Run Tests
 
-    This project is intended to evolve through:
+```powershell
+python -m pip install -e ".[dev]"
+pytest
+```
 
-    - Issues for planned work.
-    - Milestones for learning phases.
-    - Small branches and pull requests.
-    - Releases when a useful increment is ready.
+## Technical Decisions
 
-    Draft issues are documented in [docs/github-issues.md](docs/github-issues.md).
+- PostgreSQL is used because ETL output is relational and queryable.
+- SQLAlchemy keeps the load step explicit and portable for tests.
+- Docker Compose is used because the pipeline has an application container and a database service.
+- SQLite remains useful for fast feedback and does not replace the PostgreSQL runtime.
 
-    ## Roadmap
+## Roadmap
 
-    See [ROADMAP.md](ROADMAP.md).
+- Add richer batch manifests after the PyTest study phase.
+- Add migration tooling when schema evolution becomes frequent.
+- Add optional aggregate reports by group and status.
 
-    ## Security and Independence
+## Security and Independence
 
-    See [SECURITY.md](SECURITY.md) and [DISCLAIMER.md](DISCLAIMER.md).
+See [SECURITY.md](SECURITY.md) and [DISCLAIMER.md](DISCLAIMER.md).
