@@ -1,0 +1,14 @@
+[
+  {
+    "device_id": "LAB-001",
+    "group": "north"
+  },
+  {
+    "device_id": "LAB-002",
+    "group": "west"
+  },
+  {
+    "device_id": "LAB-003",
+    "group": "south"
+  }
+]

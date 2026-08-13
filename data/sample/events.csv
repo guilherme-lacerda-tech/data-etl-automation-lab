@@ -1,0 +1,4 @@
+event_id,device_id,status,battery_level,signal_level
+EVT-001,LAB-001,online,88,77
+EVT-002,LAB-002,degraded,22,35
+EVT-003,LAB-003,offline,55,0
