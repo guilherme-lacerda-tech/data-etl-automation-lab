@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from data_etl_automation_lab.pipeline import transform_row, validate_row, run
+from data_etl_automation_lab.pipeline import benchmark_synthetic_batch, transform_row, validate_row, run
 
 
 def test_pipeline_validates_deduplicates_and_loads(tmp_path: Path) -> None:
@@ -58,3 +58,19 @@ def test_transform_row_adds_group_and_health_score() -> None:
 
     assert transformed["group"] == "north"
     assert transformed["health_score"] == 70
+
+
+def test_benchmark_synthetic_batch_reports_time_and_memory() -> None:
+    result = benchmark_synthetic_batch(50, device_count=5)
+
+    assert result["record_count"] == 50
+    assert result["processed_records"] == 50
+    assert result["records_per_second"] > 0
+    assert result["peak_memory_kib"] > 0
+
+
+def test_benchmark_synthetic_batch_validates_sizes() -> None:
+    with pytest.raises(ValueError):
+        benchmark_synthetic_batch(0)
+    with pytest.raises(ValueError):
+        benchmark_synthetic_batch(10, device_count=0)

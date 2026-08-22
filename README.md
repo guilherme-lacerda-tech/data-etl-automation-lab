@@ -20,6 +20,7 @@ Data workflows need clear validation, repeatable transformations and a way to ex
 - SQLAlchemy persistence.
 - PostgreSQL runtime through Docker Compose.
 - Summary, invalid-record report and manifest.
+- Synthetic time and memory benchmark for larger local batches without requiring Docker.
 - CI with Ruff, PyTest and coverage.
 
 ## Architecture

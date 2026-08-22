@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import csv
 import json
+import tempfile
+import tracemalloc
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+from time import perf_counter
 
 from sqlalchemy import delete, func, select
 
@@ -122,3 +125,54 @@ def write_outputs(output_dir: Path, report: dict) -> None:
     if report["database_backend"] == "sqlite":
         manifest["outputs"].append("etl_lab.db")
     (output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
+
+def benchmark_synthetic_batch(record_count: int, device_count: int = 20) -> dict:
+    if record_count <= 0:
+        raise ValueError("record_count must be positive")
+    if device_count <= 0:
+        raise ValueError("device_count must be positive")
+
+    with tempfile.TemporaryDirectory() as temp:
+        root = Path(temp)
+        devices_path = root / "devices.json"
+        events_path = root / "events.csv"
+        output_dir = root / "out"
+
+        devices = [
+            {"device_id": f"LAB-{index:03d}", "group": f"group-{index % 4}"}
+            for index in range(device_count)
+        ]
+        devices_path.write_text(json.dumps(devices), encoding="utf-8")
+        with events_path.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.DictWriter(
+                handle,
+                fieldnames=["event_id", "device_id", "status", "battery_level", "signal_level"],
+            )
+            writer.writeheader()
+            statuses = sorted(VALID_STATUSES)
+            for index in range(record_count):
+                writer.writerow(
+                    {
+                        "event_id": f"EVT-{index:07d}",
+                        "device_id": devices[index % device_count]["device_id"],
+                        "status": statuses[index % len(statuses)],
+                        "battery_level": str(40 + index % 61),
+                        "signal_level": str(35 + index % 66),
+                    }
+                )
+
+        tracemalloc.start()
+        started = perf_counter()
+        report = run(events_path, devices_path, output_dir, "sqlite+pysqlite:///:memory:")
+        duration_seconds = perf_counter() - started
+        _current, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+
+    return {
+        "record_count": record_count,
+        "processed_records": report["processed_records"],
+        "duration_seconds": round(duration_seconds, 4),
+        "records_per_second": round(record_count / duration_seconds, 2),
+        "peak_memory_kib": round(peak / 1024, 1),
+    }
